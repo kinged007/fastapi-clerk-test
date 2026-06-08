@@ -7,7 +7,7 @@
         }
     },
     "postCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && if [ ! -f .env ]; then cp .env.example .env; fi && uv sync",
-    "postStartCommand": "uv run python main.py",
+    "forwardPorts": [8000],
     "customizations": {
         "vscode": {
             "extensions": [
