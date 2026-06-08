@@ -4,10 +4,9 @@
     "features": {
         "ghcr.io/devcontainers/features/node:1": {
             "version": "lts"
-        },
-        "ghcr.io/devcontainers/features/uv:1": {}
+        }
     },
-    "postCreateCommand": "if [ ! -f .env ]; then cp .env.example .env; fi && uv sync",
+    "postCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && if [ ! -f .env ]; then cp .env.example .env; fi && uv sync",
     "postStartCommand": "uv run python main.py",
     "customizations": {
         "vscode": {
