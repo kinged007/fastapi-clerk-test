@@ -1,0 +1,25 @@
+{
+    "name": "FastAPI Clerk Test",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11",
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "lts"
+        },
+        "ghcr.io/devcontainers/features/uv:1": {}
+    },
+    "postCreateCommand": "if [ ! -f .env ]; then cp .env.example .env; fi && uv sync",
+    "postStartCommand": "uv run python main.py",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy"
+            ]
+        }
+    },
+    "remoteUser": "vscode",
+    "containerEnv": {
+        "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv"
+    }
+}
