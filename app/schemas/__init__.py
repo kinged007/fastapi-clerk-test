@@ -6,21 +6,21 @@ for request validation and response serialization.
 """
 
 from .auth import (
+    AuthenticationError,
+    ErrorResponse,
+    HealthResponse,
+    LoginResponse,
     TokenDebugRequest,
     TokenDebugResponse,
     UserResponse,
-    LoginResponse,
-    HealthResponse,
-    ErrorResponse,
-    AuthenticationError
 )
 
 __all__ = [
     "TokenDebugRequest",
-    "TokenDebugResponse", 
+    "TokenDebugResponse",
     "UserResponse",
     "LoginResponse",
     "HealthResponse",
     "ErrorResponse",
-    "AuthenticationError"
+    "AuthenticationError",
 ]

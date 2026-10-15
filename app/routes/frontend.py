@@ -8,6 +8,7 @@ This module handles:
 """
 
 import logging
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -27,18 +28,18 @@ router = APIRouter()
 async def serve_frontend(request: Request):
     """
     Serve the main frontend application.
-    
+
     This endpoint renders the HTML template with embedded Clerk configuration
     and serves the complete authentication demo interface.
-    
+
     Args:
         request: FastAPI request object
-        
+
     Returns:
         HTMLResponse: Rendered HTML page with Clerk integration
     """
     logger.info("🌐 Frontend page requested")
-    
+
     # Prepare template context
     context = {
         "request": request,
@@ -46,9 +47,11 @@ async def serve_frontend(request: Request):
         "clerk_publishable_key": settings.CLERK_PUBLISHABLE_KEY or "NOT_CONFIGURED",
         "clerk_frontend_api": settings.CLERK_FRONTEND_API or "NOT_CONFIGURED",
         "debug_mode": settings.DEBUG,
-        "clerk_configured": settings.clerk_configured
+        "clerk_configured": settings.clerk_configured,
     }
-    
-    logger.debug(f"📄 Rendering template with context: clerk_configured={settings.clerk_configured}")
-    
-    return templates.TemplateResponse("index.html", context)
+
+    logger.debug(
+        f"📄 Rendering template with context: clerk_configured={settings.clerk_configured}"
+    )
+
+    return templates.TemplateResponse(request, "index.html", context)
