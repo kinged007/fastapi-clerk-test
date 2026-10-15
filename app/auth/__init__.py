@@ -6,17 +6,17 @@ for JWT token verification and user management.
 """
 
 from .clerk_auth import (
-    get_current_user,
-    get_clerk_client,
-    verify_jwt_token,
+    ClerkAuthError,
     decode_token_without_verification,
-    ClerkAuthError
+    get_clerk_client,
+    get_current_user,
+    verify_jwt_token,
 )
 
 __all__ = [
     "get_current_user",
-    "get_clerk_client", 
+    "get_clerk_client",
     "verify_jwt_token",
     "decode_token_without_verification",
-    "ClerkAuthError"
+    "ClerkAuthError",
 ]

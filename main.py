@@ -11,11 +11,10 @@ Or with uvicorn:
     uvicorn main:app --reload
 """
 
-from app.main import app
-
 if __name__ == "__main__":
     import uvicorn
-    from app.core.config import settings, logger
+
+    from app.core.config import logger, settings
 
     logger.info(f"Starting server on {settings.HOST}:{settings.PORT}")
 
@@ -24,5 +23,5 @@ if __name__ == "__main__":
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
-        log_level=settings.LOG_LEVEL.lower()
+        log_level=settings.LOG_LEVEL.lower(),
     )

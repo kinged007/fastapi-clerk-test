@@ -1,6 +1,51 @@
-# FastAPI + Clerk JWT Authentication Guide
+# FastAPI + Clerk JWT Authentication Demo
 
-A comprehensive guide to implementing Clerk JWT token verification in FastAPI using the `Depends()` pattern for secure API backends.
+[![CI](https://github.com/kinged007/fastapi-clerk-test/actions/workflows/ci.yml/badge.svg)](https://github.com/kinged007/fastapi-clerk-test/actions/workflows/ci.yml)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-009688.svg)](https://fastapi.tiangolo.com)
+
+FastAPI demo that shows the full Clerk login -> JWT -> backend verification flow using `Depends(get_current_user)`. Serves a single-page frontend and a typed API with JWT verification, protected routes, and debug endpoints.
+
+![Demo](./docs/screenshot.png)
+
+## Install
+
+```bash
+uv sync
+cp .env.example .env  # fill in CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, CLERK_FRONTEND_API
+```
+
+## Usage
+
+```bash
+uv run python main.py
+# or
+uv run uvicorn app.main:app --reload
+```
+
+Open http://127.0.0.1:8000 — the page serves the Clerk frontend demo. API docs at `/docs` and OpenAPI at `/openapi.json`.
+
+```bash
+# Protected endpoint (needs Clerk JWT)
+curl -H "Authorization: Bearer <JWT>" http://127.0.0.1:8000/users/me
+# Debug a JWT without verification
+curl -X POST http://127.0.0.1:8000/debug/token -H "Content-Type: application/json" -d '{"token":"<JWT>"}'
+# Health
+curl http://127.0.0.1:8000/health
+```
+
+## How it is tested
+
+```bash
+uv sync --extra dev
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy app --ignore-missing-imports
+uv run pytest -q
+```
+
+Tests use FastAPI `TestClient` (see `tests/`). CI runs the same checks on every push/PR to `master` via `.github/workflows/ci.yml`.
 
 ## 🎯 Overview
 
@@ -75,9 +120,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 security = HTTPBearer(auto_error=False)
 
+
 async def get_current_user(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Dict[str, Any]:
     """
     FastAPI dependency that verifies JWT tokens and returns user data.
@@ -91,10 +137,7 @@ async def get_current_user(
     # Extract token from request
     token = extract_token_from_request(request, credentials)
     if not token:
-        raise HTTPException(
-            status_code=401,
-            detail="No authentication token provided"
-        )
+        raise HTTPException(status_code=401, detail="No authentication token provided")
 
     # Verify token with Clerk
     auth_data = verify_jwt_token(token)
@@ -107,8 +150,7 @@ The system supports multiple token sources:
 
 ```python
 def extract_token_from_request(
-    request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = None
+    request: Request, credentials: Optional[HTTPAuthorizationCredentials] = None
 ) -> Optional[str]:
     """
     Extract JWT token from multiple sources:
@@ -153,11 +195,7 @@ def verify_jwt_token(token: str) -> Dict[str, Any]:
             raise ClerkAuthError("Invalid token: missing user ID")
 
         # Return authentication data
-        return {
-            "user_id": user_id,
-            "token_data": decoded_token,
-            "authenticated": True
-        }
+        return {"user_id": user_id, "token_data": decoded_token, "authenticated": True}
 
     except jwt.InvalidTokenError as e:
         raise ClerkAuthError(f"Invalid token: {str(e)}")
@@ -191,24 +229,24 @@ def decode_token_without_verification(token: str) -> Dict[str, Any]:
                 "format": "header.payload.signature",
                 "header": header,
                 "payload_claims": list(decoded.keys()),
-                "signature_present": True
-            }
+                "signature_present": True,
+            },
         },
         "decoded_claims": decoded,
         "clerk_specific_claims": {
-            "user_id": decoded.get('sub'),      # Subject (user ID)
-            "session_id": decoded.get('sid'),   # Session ID
-            "issuer": decoded.get('iss'),       # Clerk instance URL
-            "audience": decoded.get('azp'),     # Authorized party (your app)
-            "session_status": decoded.get('sts') # Session status
+            "user_id": decoded.get("sub"),  # Subject (user ID)
+            "session_id": decoded.get("sid"),  # Session ID
+            "issuer": decoded.get("iss"),  # Clerk instance URL
+            "audience": decoded.get("azp"),  # Authorized party (your app)
+            "session_status": decoded.get("sts"),  # Session status
         },
         "timing_analysis": {
-            "issued_at": decoded.get('iat'),    # When token was issued
-            "expires_at": decoded.get('exp'),   # When token expires
-            "not_before": decoded.get('nbf'),   # Token not valid before
-            "is_expired": current_time > decoded.get('exp', 0),
-            "time_until_expiry": decoded.get('exp', 0) - current_time
-        }
+            "issued_at": decoded.get("iat"),  # When token was issued
+            "expires_at": decoded.get("exp"),  # When token expires
+            "not_before": decoded.get("nbf"),  # Token not valid before
+            "is_expired": current_time > decoded.get("exp", 0),
+            "time_until_expiry": decoded.get("exp", 0) - current_time,
+        },
     }
 ```
 
@@ -236,7 +274,7 @@ The backend follows these steps when processing a JWT token:
 ```python
 @router.get("/debug/jwt-process")
 async def show_jwt_verification_process(
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
     Shows the complete JWT verification process:
@@ -251,28 +289,28 @@ async def show_jwt_verification_process(
             "step_1": {
                 "action": "Token Extraction",
                 "description": "Backend extracts JWT from Authorization: Bearer header or cookies",
-                "implementation": "extract_token_from_request() function"
+                "implementation": "extract_token_from_request() function",
             },
             "step_2": {
                 "action": "Token Structure Analysis",
                 "description": "Backend decodes token to examine header, payload, and signature",
-                "implementation": "jwt.decode() with verify_signature=False for analysis"
+                "implementation": "jwt.decode() with verify_signature=False for analysis",
             },
             "step_3": {
                 "action": "Signature Verification",
                 "description": "Backend verifies token signature with Clerk's public keys",
-                "implementation": "verify_jwt_token() function with Clerk API"
+                "implementation": "verify_jwt_token() function with Clerk API",
             },
             "step_4": {
                 "action": "Claims Validation",
                 "description": "Backend validates expiration, issuer, audience, etc.",
-                "implementation": "Check exp, iss, azp, nbf claims"
+                "implementation": "Check exp, iss, azp, nbf claims",
             },
             "step_5": {
                 "action": "User Data Extraction",
                 "description": "Backend extracts user ID and session info from verified token",
-                "implementation": "Extract 'sub' (user_id) and 'sid' (session_id) claims"
-            }
+                "implementation": "Extract 'sub' (user_id) and 'sid' (session_id) claims",
+            },
         }
     }
 ```
@@ -287,7 +325,7 @@ backend_security_notes = {
     "expiration_check": "Backend MUST check token expiration (exp claim)",
     "issuer_validation": "Backend MUST validate issuer matches Clerk instance",
     "audience_check": "Backend SHOULD validate audience matches application",
-    "replay_protection": "Backend SHOULD implement additional replay protection if needed"
+    "replay_protection": "Backend SHOULD implement additional replay protection if needed",
 }
 ```
 
@@ -304,9 +342,10 @@ from app.auth.clerk_auth import get_current_user
 
 router = APIRouter()
 
+
 @router.get("/users/me")
 async def get_current_user_data(
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
     Protected endpoint that requires valid JWT token.
@@ -326,7 +365,9 @@ async def get_current_user_data(
         "id": user.id,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "email": user.email_addresses[0].email_address if user.email_addresses else None
+        "email": user.email_addresses[0].email_address
+        if user.email_addresses
+        else None,
     }
 ```
 
@@ -338,7 +379,7 @@ Create different dependency functions for different access levels:
 # Optional authentication (user may or may not be logged in)
 async def get_optional_user(
     request: Request,
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[Dict[str, Any]]:
     """Returns user data if authenticated, None otherwise."""
     try:
@@ -346,9 +387,10 @@ async def get_optional_user(
     except HTTPException:
         return None
 
+
 # Admin-only authentication
 async def get_admin_user(
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user),
 ) -> Dict[str, Any]:
     """Requires authentication + admin role."""
     # Check if user has admin role (implement based on your needs)
@@ -367,6 +409,7 @@ class ClerkAuthError(HTTPException):
 
     def __init__(self, detail: str, status_code: int = 401):
         super().__init__(status_code=status_code, detail=detail)
+
 
 # Usage in verification
 if not token:
@@ -432,20 +475,22 @@ if response.status_code == 200:
     print(f"Authenticated as: {user_data['first_name']}")
 
 # Debug JWT token structure
-debug_response = requests.post("http://localhost:8000/debug/token",
-                              json={"token": token})
+debug_response = requests.post(
+    "http://localhost:8000/debug/token", json={"token": token}
+)
 if debug_response.status_code == 200:
     jwt_analysis = debug_response.json()
     print(f"User ID from token: {jwt_analysis['clerk_specific_claims']['user_id']}")
     print(f"Token expires at: {jwt_analysis['timing_analysis']['expires_at']}")
 
 # Show verification process
-process_response = requests.get("http://localhost:8000/debug/jwt-process",
-                               headers=headers)
+process_response = requests.get(
+    "http://localhost:8000/debug/jwt-process", headers=headers
+)
 if process_response.status_code == 200:
     process_info = process_response.json()
     print("JWT Verification Steps:")
-    for step, info in process_info['process_steps'].items():
+    for step, info in process_info["process_steps"].items():
         print(f"  {step}: {info['action']} - {info['description']}")
 ```
 
