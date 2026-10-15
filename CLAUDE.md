@@ -37,5 +37,5 @@ CI is `.github/workflows/ci.yml` (push/PR to `master`): uv sync, ruff check, ruf
 ## Notes for agents
 
 - Follow `docs/` and existing `app/auth/`, `app/core/`, `app/routes/`, `app/schemas/` structure.
-- Do not publish or reference private `tenantflex` org code (see workspace `docs/03-tenantflex.md` — summary only, no code).
+- Keep this repo self-contained. Do not add network calls in tests; mock external services.
 - Prefer extending existing modules over adding parallel solutions.
