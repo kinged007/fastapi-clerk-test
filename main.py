@@ -19,7 +19,7 @@ if __name__ == "__main__":
     logger.info(f"Starting server on {settings.HOST}:{settings.PORT}")
 
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
